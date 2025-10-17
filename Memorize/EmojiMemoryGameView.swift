@@ -8,17 +8,18 @@
 import SwiftUI
 
 struct EmojiMemoryGameView: View {
-    @ObservedObject var viewModel : EmojiMemoryGameViewModel
-    
+    @ObservedObject var viewModel: EmojiMemoryGameViewModel
+
     var body: some View {
         Grid(items: viewModel.cards) { card in
-                CardView(card: card).onTapGesture {
-                    viewModel.choose(card: card)
-                }
-                .padding(6)
+            CardView(card: card).onTapGesture {
+                self.viewModel.choose(card: card)
             }
+            .padding(5)
+        }
         .padding()
-        .foregroundColor(.orange)
+        .foregroundColor(Color.orange)
+        .background(Color.black)
     }
 }
 
@@ -26,29 +27,33 @@ struct CardView: View {
     var card: MemoryGame<String>.Card
     
     var body: some View {
-        GeometryReader(content: { geometry in
-            ZStack{
-                if card.isFaceUp {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(Color(.white))
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(lineWidth: edgeLineWidth)
-                    Text(card.content)
-                } else {
-                    if !card.isMatched {
-                        RoundedRectangle(cornerRadius: cornerRadius).fill(Color(.orange))
-                    }
-                }
-            }
-            .font(.system(size: min(geometry.size.width, geometry.size.height) * fontScaleFactor))
-        })
+        GeometryReader { geometry in
+            self.body(for: geometry.size)
+        }
     }
     
-    // MARK: - Drawing Constants
+    @ViewBuilder
+    private func body(for size: CGSize) -> some View {
+        if card.isFaceUp || !card.isMatched {
+            ZStack {
+                Pie(
+                    startAngle: Angle.degrees(0 - 90),
+                    endAngle: Angle.degrees(110 - 90),
+                    clockwise: true
+                ).padding(5).opacity(0.3)
+                Text(
+                    self.card.content
+                ).font(Font.system(size: fontSize(for: size)))
+            }
+            .cardify(isFaceUp: card.isFaceUp)
+        }
+    }
     
-    let cornerRadius: CGFloat = 10.0
-    let edgeLineWidth: CGFloat = 3
-    let fontScaleFactor: CGFloat = 0.75
+    private func fontSize(for size: CGSize) -> CGFloat {
+        return min(size.width, size.height) * fontScaleFactor
+    }
+    
+    private let fontScaleFactor: CGFloat = 0.7
 }
 
 #Preview {
